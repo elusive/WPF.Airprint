@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  cups:
+    hostname: ippserver
+    build:
+      network: host
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./test-files:/files

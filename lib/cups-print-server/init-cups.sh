@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Starting CUPS Browser service in background...
+service cups-browsed start
+
+# Starting dbus service required by avahi...
+service dbus start
+
+# Starting avahi daemon for discovery...
+service avahi-daemon start
+
+# Starting CUPS in background...
+/usr/sbin/cupsd -f

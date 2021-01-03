@@ -10,13 +10,11 @@
         private const string ToStringFormat = @"Terminal process [{0}] result was: {1}";
 
         public TerminalResult(
-            Process process, 
             TerminalResultEnum result, 
             int exitCode, 
             IEnumerable<string> standardOut, 
             IEnumerable<string> standardErr)
         {
-            Process = process;
             Result = result;
             ExitCode = exitCode;
             StandardError = standardErr;
@@ -27,15 +25,13 @@
 
         public IEnumerable<string> StandardError { get; }
 
-        public Process Process { get; }
-
         public TerminalResultEnum Result { get; }
 
         public int ExitCode { get; }
 
         public override string ToString()
         {
-            return string.Format(ToStringFormat, Process.Id, Result);
+            return string.Format(ToStringFormat, "Terminal Process", Result);
         }
     }
 

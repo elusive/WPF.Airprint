@@ -8,10 +8,16 @@ namespace WPF.Airprint.Terminal
 
     public interface ITerminalService
     {
-        ProcessStartInfo CreateCmdStartInfo(string cmd);
+        int CommandTimeoutMilliseconds { get; set; }
 
-        Task<TerminalResult> ExecuteAsync(string cmd);
+        void Cancel();
 
-        Task<TerminalResult> ExecuteAsync(ProcessStartInfo processStartInfo, List<string> standardOutput, List<string> standardError, CancellationToken cancellationToken = new CancellationToken());
+        void CancelAfter(int milliseconds);
+
+        ProcessStartInfo CreateCmdStartInfo(string commandText);
+
+        Task<TerminalResult> ExecuteAsync(CommandType type, params object[] args);
+
+        Task<TerminalResult> ExecuteAsync(string program, string commandText, CancellationToken token);
     }
 }

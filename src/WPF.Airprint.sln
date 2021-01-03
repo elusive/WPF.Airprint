@@ -10,12 +10,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B03A910B-BF99-4962-9DB3-6FF4C8E56429}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		..\CHANGELOG.md = ..\CHANGELOG.md
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPF.Airprint.Demo.PrintersModule", "WPF.Airprint.Demo.PrintersModule\WPF.Airprint.Demo.PrintersModule.csproj", "{056055F1-EB5A-4B0F-A831-9FDD40B8BA98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPF.Airprint.IntegrationTests", "WPF.Airprint.IntegrationTests\WPF.Airprint.IntegrationTests.csproj", "{0690427E-219E-4A81-9EE0-4664E46111BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPF.Airprint.IntegrationTests", "WPF.Airprint.IntegrationTests\WPF.Airprint.IntegrationTests.csproj", "{0690427E-219E-4A81-9EE0-4664E46111BD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

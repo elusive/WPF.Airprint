@@ -13,6 +13,7 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
     using System.Threading.Tasks;
     using System.Windows.Input;
     using System;
+    using System.Linq;
     using WPF.Airprint.Events;
 
     public class AddPrinterViewModel : RegionViewModelBase
@@ -21,7 +22,11 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
         private readonly IDockerService _dockerService;
         private readonly ITerminalService _terminal;
         private string _printerHostName;
-
+        private string _printerUri;
+        private string _printServerImageId;
+        private bool _printServerContainerStarted;
+        private bool _showPrinterUri;
+        private bool _showPrinterInfo;
 
         public DelegateCommand AddPrinterCommand { get; set; }
 
@@ -47,7 +52,10 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
                 return;
             }
 
-            _printerHostName = printerDetail.HostName;
+            PrinterHostName = printerDetail.HostName;
+            ShowPrinterUri = false;
+            ShowPrintServerInfo = false;
+
             AddPrinterCommand.RaiseCanExecuteChanged();
         }
 
@@ -55,6 +63,36 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
         {
             get => _printerHostName;
             set => SetProperty(ref _printerHostName, value);
+        }
+
+        public string PrinterUri
+        {
+            get => _printerUri;
+            set => SetProperty(ref _printerUri, value);
+        }
+
+        public bool ShowPrinterUri
+        {
+            get => _showPrinterUri;
+            set => SetProperty(ref _showPrinterUri, value);
+        }
+
+        public string PrintServerImageId
+        {
+            get => _printServerImageId;
+            set => SetProperty(ref _printServerImageId, value);
+        }
+
+        public bool PrintServerContainerStarted
+        {
+            get => _printServerContainerStarted;
+            set => SetProperty(ref _printServerContainerStarted, value);
+        }
+
+        public bool ShowPrintServerInfo
+        {
+            get => _showPrinterInfo;
+            set => SetProperty(ref _showPrinterInfo, value);
         }
 
         private bool CanExecuteAddPrinter()
@@ -65,13 +103,14 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
         private async void ExecuteAddPrinter()
         {
             var uri = await BuildPrinterUri();
+            _eventAggregator.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.GetBuildUriStatusMessage(uri));
+            PrinterUri = uri;
+            ShowPrinterUri = true;
+            
+
             var isPrintServerRunning = await CheckPrintServer();
-
-            if (isPrintServerRunning)
-            {
-
-            }
-            else
+            ShowPrintServerInfo = true;
+            if (!isPrintServerRunning)
             {
                 throw new Exception(Constants.Messages.PrintServerContainerMustBeRunning);
             }
@@ -79,24 +118,35 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
 
         private async Task<string> BuildPrinterUri()
         {
-            var linesOut = new List<string>();
-            var linesErr = new List<string>();
-            var getIpCmd = string.Format(CommandStrings.GetIpAddressFormat, _printerHostName);
-            var getIpPsi = _terminal.CreateCmdStartInfo(getIpCmd);
-            var result = await _terminal.ExecuteAsync(getIpPsi, linesOut, linesErr);
-            var ip = Regex.Split(result.StandardOutput[1], "/s")[5];
-            return string.Format(CommandStrings.DeviceUriFormat, ip);
+            //_terminal.CancelAfter(_terminal.CommandTimeoutMilliseconds);
+            var result = await _terminal.ExecuteAsync(CommandType.GetIpAddress, _printerHostName);
+            if (result != null)
+            {
+                var ip = Regex.Split(result.StandardOutput.Skip(1).First(), @"\s+")[5];
+                return string.Format(CommandStrings.DeviceUriFormat, ip);
+            }
+
+            return string.Empty;
         }
 
         private async Task<bool> CheckPrintServer()
         {
             // is the docker image there?
-            var printServerImageId = await _dockerService.IsImageExisting(Constants.PrintServerExistingImageName);
+            var printServerSha256 = await _dockerService.IsImageExisting(Constants.PrintServerExistingImageName);
+            var printServerImageId = printServerSha256.Replace("sha256:", "");
+            _eventAggregator.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.GetPrintServerIdStatusMessage(printServerImageId));
+            PrintServerImageId = printServerImageId;
+
+
+            // is container already existing
+            var containerId = await _dockerService.IsContainerExisting(PrintServerImageId);
+
 
             // can we get the container started?
-            var started = await _dockerService.StartContainer(printServerImageId);
+            var started = (containerId != null) || await _dockerService.StartContainer(printServerImageId);
+            PrintServerContainerStarted = started;
 
-            return true;
+            return started;
         }
     }
 }

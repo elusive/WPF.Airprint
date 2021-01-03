@@ -27,5 +27,11 @@
             // assert
             Assert.NotEmpty(actual);
         }
+
+        [Fact]
+        public async void TestIsContainerExistingMethodReturnsTrueForExistingContainer()
+        {
+
+        }
     }
 }

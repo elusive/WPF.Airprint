@@ -1,4 +1,10 @@
+## 0.0.2 (2020-12-31)
+
+
+
 ## 0.0.1 (2020-12-30)
--   Created remote repository on github with readme, license, etc.   [`82cad5d`]
+-   Created remote repository on github with readme, license, etc.  [`82cad5d`]
+-   Commit first working draft. Functional printer discovery.       [`a2cf765`]
 
 [`82cad5d`]: <https://github.com/elusive/WPF.Airprint/commit/82cad5d834decca6cb7d585830e3cc1b13b42199>
+[`a2cf765`]: <https://github.com/elusive/WPF.Airprint/commit/a2cf76530d973b5de92f3096fc0b18a6df13bfcf>

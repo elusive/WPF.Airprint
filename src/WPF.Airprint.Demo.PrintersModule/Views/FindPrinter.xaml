@@ -23,9 +23,10 @@
 
             <Button
                 x:Name="FindPrinter_SearchButton"
+                Height="{StaticResource ButtonHeight}"
+                Style="{StaticResource MaterialDesignRaisedAccentButton}"
                 Margin="4"
                 MaxWidth="170"
-                Style="{StaticResource MaterialDesignRaisedAccentButton}"
                 materialDesign:ButtonProgressAssist.Value="{Binding FindProgress}"
                 materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsBusy}"
                 Command="{Binding FindPrinterCommand}"

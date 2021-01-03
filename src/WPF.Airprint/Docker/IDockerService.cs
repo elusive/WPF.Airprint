@@ -6,6 +6,7 @@ namespace WPF.Airprint.Docker
     {
         string PrintServerContainerUri { get; }
 
+        Task<string> IsContainerExisting(string containerName);
         Task<string> IsImageExisting(string imageName);
         Task<bool> IsContainerRunning(string containerUri);
         Task<bool> StartContainer(string containerImageId);

@@ -91,5 +91,15 @@
 
             return firstResponse.ID;
         }
+
+        public async Task<string> IsContainerExisting(string containerImageID)
+        {
+            var p = new ContainersListParameters() {All = true};
+
+            var response = await _dockerClient.Containers.ListContainersAsync(p);
+            var firstResponse = response.FirstOrDefault(c => c.ImageID.Contains(containerImageID));
+
+            return firstResponse?.ID;
+        }
     }
 }

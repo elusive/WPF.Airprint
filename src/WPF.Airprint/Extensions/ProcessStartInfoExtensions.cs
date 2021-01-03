@@ -18,19 +18,15 @@
         ///     to the provided delegates.
         /// </summary>
         /// <param name="processStartInfo"><see cref="ProcessStartInfo" /> instance.</param>
-        /// <param name="taskName">Name of the task.</param>
-        /// <param name="outputMessageDelegate">Handler for output.</param>
-        /// <param name="errorMessageDelegate">Handler for error output.</param>
         /// <param name="processExitedCallback">Handler for process exit.</param>
         /// <param name="token">Cancel token.</param>
+        /// <param name="timeoutMs">Milliseconds used to timeout waiting for exit.</param>
         /// <returns>Exit code result wrapped in a task.</returns>
         public static async Task<int> StartWithCancelAsync(
             [NotNull] this ProcessStartInfo processStartInfo,
-            string taskName,
-            Action<string> outputMessageDelegate,
-            Action<string> errorMessageDelegate,
             Action<TerminalResult> processExitedCallback,
-            CancellationToken token)
+            CancellationToken token,
+            int timeoutMs = 3500)
         {
             processStartInfo.RedirectStandardError = true;
             processStartInfo.RedirectStandardOutput = true;
@@ -47,7 +43,6 @@
                 ps.WaitForExit();
                 var exitCode = ps.ExitCode;
                 var result = new TerminalResult(
-                    ps,
                     exitCode == 0 ? TerminalResultEnum.Success : TerminalResultEnum.Failure,
                     exitCode,
                     standardOut,
@@ -90,18 +85,20 @@
                     if (!string.IsNullOrEmpty(args.Data)) standardErr.Add(args.Data);
                 };
 
-                // start process
+                // start process in a thread that we can join
                 ps.Start();
                 ps.BeginErrorReadLine();
                 ps.BeginOutputReadLine();
+                ps.WaitForExit(timeoutMs);
+
+                // check to see if still running after timeout
+                if (!ps.HasExited)
+                { 
+                    ps.Kill(true);
+                }
 
                 return await tcs.Task.ConfigureAwait(false);
             }
-        }
-
-        private static void DelegateLine(string line, Action<string> del)
-        {
-            del?.Invoke(string.IsNullOrWhiteSpace(line) ? line : line.TrimEnd());
         }
     }
 }

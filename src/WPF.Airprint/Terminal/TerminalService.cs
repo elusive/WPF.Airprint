@@ -1,119 +1,93 @@
 ﻿namespace WPF.Airprint.Terminal
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Extensions;
 
     public class TerminalService : ITerminalService
     {
+        private const int _defaultTimeoutMilliseconds = 3500;
+        private CancellationTokenSource _tokenSource;
+
+        public TerminalService()
+        {
+            _tokenSource = new CancellationTokenSource();
+
+            CommandTimeoutMilliseconds = _defaultTimeoutMilliseconds;
+        }
+
         public ProcessStartInfo CreateCmdStartInfo(string cmd)
         {
             var psi = new ProcessStartInfo("cmd.exe", "/C " + cmd);
             return psi;
         }
 
-        public async Task<TerminalResult> ExecuteAsync(string cmd)
+        public int CommandTimeoutMilliseconds { get; set; }
+
+        public void Cancel()
         {
-            var psi = new ProcessStartInfo("cmd.exe", cmd);
-            return await ExecuteAsync(psi, new List<string>(), new List<string>());
+            _tokenSource.Cancel();
+        }
+
+        public void CancelAfter(int milliseconds)
+        {
+            _tokenSource.CancelAfter(TimeSpan.FromMilliseconds(milliseconds));
+        }
+
+        public async Task<TerminalResult> ExecuteAsync(string commandText)
+        {
+            return await ExecuteAsync(CommandStrings.CommandExe, commandText, _tokenSource.Token);
+        }
+
+        public async Task<TerminalResult> ExecuteAsync(CommandType type, params object[] args)
+        {
+            var (cmd, txt) = ResolveCommandText(type, args);
+            return await ExecuteAsync(cmd, txt, _tokenSource.Token);
         }
 
         /// <summary>
-        /// Runs asynchronous process.
+        /// Executes command at the terminal asynchronously.
         /// </summary>
-        /// <param name="processStartInfo">The <see cref="T:System.Diagnostics.ProcessStartInfo" /> that contains the information that is used to start the process, including the file name and any command-line arguments.</param>
-        /// <param name="standardOutput">List that lines written to standard output by the process will be added to</param>
-        /// <param name="standardError">List that lines written to standard error by the process will be added to</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        public async Task<TerminalResult> ExecuteAsync(ProcessStartInfo processStartInfo, List<string> standardOutput, List<string> standardError, CancellationToken cancellationToken = default(CancellationToken))
+        /// <param name="program">The program to execute.</param>
+        /// <param name="commandText">The command text.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        public async Task<TerminalResult> ExecuteAsync(
+            string program,
+            string commandText,
+            CancellationToken cancellationToken)
         {
+            var processStartInfo = new ProcessStartInfo(program, commandText);
+
             // force some settings in the start info so we can capture the output
             processStartInfo.UseShellExecute = false;
             processStartInfo.RedirectStandardOutput = true;
             processStartInfo.RedirectStandardError = true;
             processStartInfo.CreateNoWindow = true;
 
-            var tcs = new TaskCompletionSource<TerminalResult>();
-
-            var process = new Process
+            TerminalResult result = null;
+            //var signal = new AutoResetEvent(initialState: false);
+            await processStartInfo.StartWithCancelAsync((res) =>
             {
-                StartInfo = processStartInfo,
-                EnableRaisingEvents = true
-            };
+                result = res;
+                //signal.Set();
+            }, cancellationToken);
+            //signal.WaitOne(CommandTimeoutMilliseconds);
+            return result;
+        }
 
-            var standardOutputResults = new TaskCompletionSource<string[]>();
-            process.OutputDataReceived += (sender, args) => {
-                if (args.Data != null)
-                    standardOutput.Add(args.Data);
-                else
-                    standardOutputResults.SetResult(standardOutput.ToArray());
-            };
-
-            var standardErrorResults = new TaskCompletionSource<string[]>();
-            process.ErrorDataReceived += (sender, args) => {
-                if (args.Data != null)
-                    standardError.Add(args.Data);
-                else
-                    standardErrorResults.SetResult(standardError.ToArray());
-            };
-
-            var processStartTime = new TaskCompletionSource<DateTime>();
-
-            process.Exited += async (sender, args) => {
-                // Since the Exited event can happen asynchronously to the output and error events, 
-                // we await the task results for stdout/stderr to ensure they both closed.  We must await
-                // the stdout/stderr tasks instead of just accessing the Result property due to behavior on MacOS.  
-                // For more details, see the PR at https://github.com/jamesmanning/RunProcessAsTask/pull/16/
-                tcs.TrySetResult(
-                    new TerminalResult(
-                        process,
-                        await processStartTime.Task.ConfigureAwait(false),
-                        await standardOutputResults.Task.ConfigureAwait(false),
-                        await standardErrorResults.Task.ConfigureAwait(false)
-                    )
-                );
-            };
-
-            using (cancellationToken.Register(
-                () => {
-                    tcs.TrySetCanceled();
-                    try
-                    {
-                        if (!process.HasExited)
-                            process.Kill();
-                    }
-                    catch (InvalidOperationException) { }
-                }))
+        private Tuple<string, string> ResolveCommandText(CommandType type, params object[] args)
+        {
+            switch (type)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                case CommandType.GetIpAddress:
+                    return new Tuple<string, string>(CommandStrings.DndSdExe, string.Format(CommandStrings.GetIpAddressFormat, args));
 
-                var startTime = DateTime.Now;
-                if (process.Start() == false)
-                {
-                    tcs.TrySetException(new InvalidOperationException("Failed to start process"));
-                }
-                else
-                {
-                    try
-                    {
-                        startTime = process.StartTime;
-                    }
-                    catch (Exception)
-                    {
-                        // best effort to try and get a more accurate start time, but if we fail to access StartTime
-                        // (for instance, process has already existed), we still have a valid value to use.
-                    }
-                    processStartTime.SetResult(startTime);
-
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
-                }
-
-                return await tcs.Task.ConfigureAwait(false);
+                default: throw new InvalidOperationException("Unknown command type specified.");
             }
         }
+    
     }
 }

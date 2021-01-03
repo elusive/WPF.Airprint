@@ -1,5 +1,7 @@
-## 0.0.2 (2020-12-31)
+## 0.0.2 (2020-01-01)
+-   Implemented services for terminal execution and docker api. Added view for configure printer.   [`9097de4`]
 
+[`9097de4`]: <https://github.com/elusive/WPF.Airprint/commit/9097de4e63b1839a9224e1372097e9338f7f55cb>
 
 
 ## 0.0.1 (2020-12-30)

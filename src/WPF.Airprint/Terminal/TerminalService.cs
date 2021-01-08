@@ -8,7 +8,7 @@
 
     public class TerminalService : ITerminalService
     {
-        private const int _defaultTimeoutMilliseconds = 3500;
+        private const int _defaultTimeoutMilliseconds = 6500;
         private CancellationTokenSource _tokenSource;
 
         public TerminalService()
@@ -68,13 +68,12 @@
             processStartInfo.CreateNoWindow = true;
 
             TerminalResult result = null;
-            //var signal = new AutoResetEvent(initialState: false);
-            await processStartInfo.StartWithCancelAsync((res) =>
+            
+            await processStartInfo.StartWithTimeoutAsync((res) =>
             {
                 result = res;
-                //signal.Set();
             }, cancellationToken);
-            //signal.WaitOne(CommandTimeoutMilliseconds);
+
             return result;
         }
 
@@ -85,6 +84,15 @@
                 case CommandType.GetIpAddress:
                     return new Tuple<string, string>(CommandStrings.DndSdExe, string.Format(CommandStrings.GetIpAddressFormat, args));
 
+                case CommandType.PrintServerAddQueue:
+                    return new Tuple<string, string>(CommandStrings.DockerExe, string.Format(CommandStrings.AddPrintQueue, args));
+
+                case CommandType.PrintServerGetQueueStatus:
+                    return new Tuple<string, string>(CommandStrings.DockerExe, string.Format(CommandStrings.GetPrintQueueStatus, args));
+
+                case CommandType.PrintServerPrintFile:
+                    return new Tuple<string, string>(CommandStrings.DockerExe, string.Format(CommandStrings.PrintFile, args));
+                
                 default: throw new InvalidOperationException("Unknown command type specified.");
             }
         }

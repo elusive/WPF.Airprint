@@ -22,7 +22,7 @@
         /// <param name="token">Cancel token.</param>
         /// <param name="timeoutMs">Milliseconds used to timeout waiting for exit.</param>
         /// <returns>Exit code result wrapped in a task.</returns>
-        public static async Task<int> StartWithCancelAsync(
+        public static async Task<int> StartWithTimeoutAsync(
             [NotNull] this ProcessStartInfo processStartInfo,
             Action<TerminalResult> processExitedCallback,
             CancellationToken token,

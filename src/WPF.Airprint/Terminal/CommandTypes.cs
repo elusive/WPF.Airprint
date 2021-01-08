@@ -3,6 +3,9 @@
     public enum CommandType
     {
         Custom,
-        GetIpAddress
+        GetIpAddress,
+        PrintServerAddQueue,
+        PrintServerGetQueueStatus,
+        PrintServerPrintFile
     }
 }

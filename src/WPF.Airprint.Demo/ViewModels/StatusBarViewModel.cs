@@ -1,8 +1,8 @@
 ﻿namespace WPF.Airprint.Demo.ViewModels
 {
+    using PrintersModule.Events;
     using Prism.Events;
     using Prism.Regions;
-    using WPF.Airprint.Events;
     using WPF.Airprint.Mvvm;
 
     public class StatusBarViewModel : RegionViewModelBase

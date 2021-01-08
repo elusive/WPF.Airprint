@@ -4,10 +4,10 @@
     using Prism.Events;
     using Prism.Mvvm;
     using Prism.Regions;
-    using WPF.Airprint.Events;
     using WPF.Airprint.Mvvm;
     using System;
     using System.Threading.Tasks;
+    using PrintersModule.Events;
 
     public class MainWindowViewModel : BindableBase
     {

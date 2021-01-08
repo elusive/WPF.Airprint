@@ -4,20 +4,15 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
     using Prism.Commands;
     using Prism.Events;
     using Prism.Regions;
-    using WPF.Airprint.Bonjour;
     using WPF.Airprint.Docker;
     using WPF.Airprint.Mvvm;
     using WPF.Airprint.Terminal;
-    using System.Collections.Generic;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using System.Windows.Input;
     using System;
     using System.Diagnostics;
-    using System.Linq;
     using System.Windows.Threading;
+    using Events;
     using PrintQueue;
-    using WPF.Airprint.Events;
     using WPF.Airprint.DeviceEnumeration;
 
     public class AddPrinterViewModel : RegionViewModelBase

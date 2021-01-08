@@ -4,7 +4,6 @@
     using Prism.Events;
     using Prism.Regions;
     using WPF.Airprint.Bonjour;
-    using WPF.Airprint.Events;
     using WPF.Airprint.Mvvm;
     using System;
     using System.Collections.ObjectModel;
@@ -13,6 +12,7 @@
     using WPF.Airprint.Demo.PrintersModule;
     using WPF.Airprint.DeviceEnumeration;
     using System.Collections.Generic;
+    using WPF.Airprint.Demo.PrintersModule.Events;
 
     public class FindPrinterViewModel : RegionViewModelBase
     {

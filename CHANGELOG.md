@@ -1,6 +1,15 @@
+## 0.0.4 (2020-01-08)
+
+- Cleanup formatting on find printer view, obsolete the bonjour service. [`acecede`]
+- Revert to previous commit to repair bad sync and recover some lost code. [`ffbbbe6`]
+
+[`acecede`]: https://github.com/elusive/WPF.Airprint/commit/acecede0f0e0fafc1f06028cff16142805675583
+[`ffbbbe6`]: https://github.com/elusive/WPF.Airprint/commit/ffbbbe63b9ff4e1f68c6cf1757cf13a321b77ced
+
+
+
 ## 0.0.3 (2020-01-07)
 
-- 
 - Switched discovery to use Windows.Devices.Enumeration from WinRT instead of the Bonjour SDK library. [`ca18c25`]
 
 [`ca18c25`]: https://github.com/elusive/WPF.Airprint/commit/20e3aaa8d6df2f1f6e92a67e45e93418b63be681

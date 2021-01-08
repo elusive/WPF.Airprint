@@ -12,7 +12,7 @@
     {
         public const int SearchTimeMilliseconds = 6000;
 
-        private const string Protocol = "_http._tcp";
+        private const string Protocol = "_ipp._tcp";
         private const int Retries = 2;
 
         private DNSSDEventManager _eventManager = null;

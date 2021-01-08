@@ -16,7 +16,7 @@
     <Grid>
         <Grid x:Name="MainGrid">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="145" />
+                <ColumnDefinition Width="190" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -25,10 +25,19 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
+            <!--  Title Row  -->
+            <StackPanel
+                Grid.Row="0"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Orientation="Horizontal">
+                <TextBlock FontSize="18">Configure Network Printer</TextBlock>
+            </StackPanel>
+
+
             <!--  Form Row  -->
             <TextBlock Grid.Row="1" 
                        Grid.Column="0" 
-                       Margin="6"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
                        Style="{StaticResource MaterialDesignHeadline6TextBlock}">Action:</TextBlock>
@@ -41,30 +50,24 @@
                 Margin="8px"
                 Command="{Binding AddPrinterCommand}"
                 materialDesign:ButtonAssist.CornerRadius="5"
-                Style="{StaticResource MaterialDesignRaisedAccentButton}"
-                materialDesign:ButtonProgressAssist.Value="{Binding AddProgress}"
-                materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsBusy}"
-                MaxWidth="{StaticResource ButtonMaxWidth}">
+                Style="{StaticResource MaterialDesignRaisedButton}"
+                MaxWidth="{StaticResource ButtonMaxWidth}"
+                ToolTip="Select the printer for printing.">
                 Add Printer
             </Button>
 
             <TextBlock 
                 Grid.Row="2" 
                 Grid.Column="0" 
-                Margin="6"
-                VerticalAlignment="Top"
+                VerticalAlignment="Center"
                 HorizontalAlignment="Right"
                 Style="{StaticResource MaterialDesignHeadline6TextBlock}">Configuration:</TextBlock>
 
 
             <Grid Grid.Row="2" Grid.Column="1">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1*" />
-                    <RowDefinition Height="1*" />
-                    <RowDefinition Height="1*" />
-                    <RowDefinition Height="1*" />
-                    <RowDefinition Height="1*" />
-                    <RowDefinition Height="2*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -78,96 +81,31 @@
                            Text="Printer URI" 
                            Visibility="{Binding ShowPrinterUri, Converter={StaticResource BoolToVisConverter}}" />
                 <TextBlock Grid.Row="0" 
-                           Grid.Column="1"                            
-                           VerticalAlignment="Center"
+                           Grid.Column="1" 
                            Text="{Binding PrinterUri}" 
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
                            Visibility="{Binding ShowPrinterUri, Converter={StaticResource BoolToVisConverter}}" />
 
 
                 <!--  Print Server Docker Image ID  -->
                 <TextBlock Grid.Row="1" 
-                           Grid.Column="0"                            
-                           VerticalAlignment="Center"
+                           Grid.Column="0" 
                            Text="Print Server Docker Image" 
                            Visibility="{Binding ShowPrintServerInfo, Converter={StaticResource BoolToVisConverter}}" />
                 <TextBlock Grid.Row="1" 
-                           Grid.Column="1"                            
-                           VerticalAlignment="Center"
+                           Grid.Column="1" 
                            Text="{Binding PrintServerImageId}" 
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
                            Visibility="{Binding ShowPrintServerInfo, Converter={StaticResource BoolToVisConverter}}" />
 
 
                 <!--  Print Server Docker Container ID  -->
                 <TextBlock Grid.Row="2" 
-                           Grid.Column="0"                            
-                           VerticalAlignment="Center"
+                           Grid.Column="0" 
                            Text="Print Server Running?" 
-                           Visibility="{Binding ShowPrintServerInfo, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                           Visibility="{Binding ShowPrintServerInfo, Converter={StaticResource BoolToVisConverter}}" />
                 <TextBlock Grid.Row="2" 
-                           Grid.Column="1"                            
-                           VerticalAlignment="Center"
+                           Grid.Column="1" 
                            Text="{Binding PrintServerContainerStarted}" 
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                           Visibility="{Binding ShowPrintServerInfo, Converter={StaticResource BooleanToVisibilityConverter}}" />
-
-
-                <!--  Printer Queue Name  -->
-                <TextBlock Grid.Row="3"
-                           Grid.Column="0"                           
-                           VerticalAlignment="Center"
-                           Text="Printer Queue Created"
-                           Visibility="{Binding ShowPrinterQueue, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                <TextBlock Grid.Row="3"
-                           Grid.Column="1"                           
-                           VerticalAlignment="Center"
-                           Text="{Binding PrinterQueueName}"
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                           Visibility="{Binding ShowPrinterQueue, Converter={StaticResource BooleanToVisibilityConverter}}" />
-
-
-
-                <!--  Printer Queue Status  -->
-                <TextBlock Grid.Row="4"
-                           Grid.Column="0"                           
-                           VerticalAlignment="Center"
-                           Text="Printer Queue Status"
-                           Visibility="{Binding ShowPrinterQueue, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                <TextBlock Grid.Row="4"
-                           Grid.Column="1"                           
-                           VerticalAlignment="Center"
-                           Text="{Binding PrinterQueueStatus}"
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                           Visibility="{Binding ShowPrinterQueue, Converter={StaticResource BooleanToVisibilityConverter}}" />
-
-                <TextBlock Grid.Row="5"
-                           Grid.Column="0"
-                           Text="Print File"
-                           VerticalAlignment="Bottom"
-                           Visibility="{Binding ShowPrintFile, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                <StackPanel Orientation="Horizontal"
-                            Grid.Row="5"
-                            Grid.Column="1"                           
-                           VerticalAlignment="Bottom"
-                            Visibility="{Binding ShowPrintFile, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            Margin="4">
-                    <TextBox x:Name="AddPrinterView_PrintFileTextBox"
-                                 Margin="8"
-                                 Width="300"
-                                 Text="{Binding FileToPrint, Mode=TwoWay}"/>
-                    <Button x:Name="AddPrinterView_BrowseButton" Content="Browse" Click="AddPrinterView_BrowseButton_Click" />
-                </StackPanel>
-
-                <Button x:Name="AddPrinterView_PrintButton"
-                        Grid.Row="6"
-                        Grid.Column="1"
-                        Height="{StaticResource ButtonHeight}"
-                materialDesign:ButtonAssist.CornerRadius="5"
-                Style="{StaticResource MaterialDesignRaisedAccentButton}"
-                        Content="Print" MaxWidth="{StaticResource ButtonMaxWidth}"
-                        Visibility="{Binding ShowPrintFile, Converter={StaticResource BooleanToVisibilityConverter}}"
-                        Command="{Binding PrintCommand}" />
+                           Visibility="{Binding ShowPrintServerInfo, Converter={StaticResource BoolToVisConverter}}" />
             </Grid>
 
         </Grid>

@@ -5,7 +5,7 @@ namespace WPF.Airprint.Demo
     using Prism.DryIoc;
     using Prism.Ioc;
     using Prism.Modularity;
-    using WPF.Airprint;
+    using WPF.Airprint.Ioc;
     using WPF.Airprint.Demo.Views;
     using System.Windows;
 
@@ -29,7 +29,7 @@ namespace WPF.Airprint.Demo
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.AddAirprintServices();
+            containerRegistry.AddServices();
 
             AppContainer = containerRegistry.GetContainer();
         }

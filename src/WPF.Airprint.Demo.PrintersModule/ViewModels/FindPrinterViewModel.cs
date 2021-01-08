@@ -11,40 +11,32 @@
     using System.Linq;
     using System.Windows.Threading;
     using WPF.Airprint.Demo.PrintersModule;
-    using WPF.Airprint.DeviceEnumeration;
-    using System.Collections.Generic;
 
     public class FindPrinterViewModel : RegionViewModelBase
     {
         private readonly IEventAggregator _events;
         private readonly IBonjourService _bonjourService;
-        private readonly IWindowsDeviceService _devices;
         private ObservableCollection<PrinterFoundViewModel> _availablePrinters;
         private bool _isBusy = false;
         private double _findProgress;
-        private DeviceFoundViewModel _selectedPrinter;
+        private PrinterFoundViewModel _selectedPrinter;
+        private PrinterFoundDetails _lastPrinterDetailModel;
         private ObservableCollection<string> _printerDetails;
-        private List<DeviceFoundViewModel> _devicesFound;
 
-        public FindPrinterViewModel(IRegionManager regionManager, IEventAggregator events, IBonjourService bonjourService, IWindowsDeviceService devices) : base(regionManager)
+        public FindPrinterViewModel(IRegionManager regionManager, IEventAggregator events, IBonjourService bonjourService) : base(regionManager)
         {
             _events = events;
             _bonjourService = bonjourService;
-            _devices = devices;
 
-            FindPrinterCommand = new DelegateCommand(ExecuteFindPrinterCommand, CanExecuteFindPrinterCommand);
-            DevicesFound = new ObservableCollection<DeviceFoundViewModel>();
-            _devicesFound = new List<DeviceFoundViewModel>();
-
-            _devices.DeviceFound += _devices_DeviceFound;
+            FindPrinterCommand = new DelegateCommand(ExecuteFindPrinterCommand);
         }
 
         public override void OnNavigatedFrom(NavigationContext context)
         {
             // add the currently selected printer details instance to context
-            if (SelectedPrinter != null)
+            if (_lastPrinterDetailModel != null)
             {
-                context.Parameters.Add(Constants.PrinterKey, SelectedPrinter.Model);
+                context.Parameters.Add(Constants.PrinterKey, _lastPrinterDetailModel);
             }
 
             base.OnNavigatedFrom(context);
@@ -52,10 +44,8 @@
 
         public bool CanExecuteFindPrinterCommand()
         {
-            return !IsBusy;
+            return IsBusy;
         }
-
-        public ObservableCollection<DeviceFoundViewModel> DevicesFound { get; private set; }
 
         public ObservableCollection<PrinterFoundViewModel> AvailablePrinters 
         {
@@ -69,7 +59,7 @@
             set => SetProperty(ref _printerDetails, value);
         }
 
-        public DeviceFoundViewModel SelectedPrinter
+        public PrinterFoundViewModel SelectedPrinter
         {
             get { return _selectedPrinter; }
             set
@@ -107,27 +97,16 @@
         }
 
         private async void ExecuteFindPrinterCommand()
-        {        
-
-            //var lst = await _bonjourService.FindPrinters();
-            //AvailablePrinters = new ObservableCollection<PrinterFoundViewModel>(lst.Select(x => new PrinterFoundViewModel(x)));
-
-            _devices.CancelDiscoverDevices();
-            _devices.DiscoverDevices();
+        {
+            _lastPrinterDetailModel = null;
 
             ShowFindProgress();
 
-            _events.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.GetNetworkSearchStatusMessage(DevicesFound.Count()));
-        }
+            var lst = await _bonjourService.FindPrinters();
+            AvailablePrinters = new ObservableCollection<PrinterFoundViewModel>(lst.Select(x => new PrinterFoundViewModel(x)));
 
-        private void _devices_DeviceFound(object sender, DeviceFound e)
-        {
-            if (e == null) return;
-            _devicesFound.Add(new DeviceFoundViewModel(e));
-            DevicesFound = new ObservableCollection<DeviceFoundViewModel>(_devicesFound);
-            RaisePropertyChanged(nameof(DevicesFound));
+            _events.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.GetNetworkSearchStatusMessage(lst.Count()));
         }
-
 
         private void ShowFindProgress()
         {
@@ -138,7 +117,7 @@
                     DispatcherPriority.Normal,
                     new EventHandler((o, e) =>
                     {
-                        var totalDuration = started.AddMilliseconds(3000).Ticks - started.Ticks;
+                        var totalDuration = started.AddMilliseconds(BonjourService.SearchTimeMilliseconds).Ticks - started.Ticks;
                         var currentProgress = DateTime.Now.Ticks - started.Ticks;
                         var currentProgressPercent = 100.0 / totalDuration * currentProgress;
 
@@ -159,9 +138,16 @@
 
         private async void PopulatePrinterDetails()
         {
+            var details = await _bonjourService.GetPrinterDetails(SelectedPrinter.Model);
+
             PrinterDetails = new ObservableCollection<string>();
- 
-            PrinterDetails.AddRange(SelectedPrinter.Details);
+            PrinterDetails.Add($"InterfaceIndex = {details.InterfaceIndex}");
+            PrinterDetails.Add($"FullName = {details.FullName}");
+            PrinterDetails.Add($"HostName = {details.HostName}");
+            PrinterDetails.Add($"Port   =   {details.Port}");
+            PrinterDetails.AddRange(details.RenderTxtRecord());
+
+            _lastPrinterDetailModel = details;
         }
     }
 }

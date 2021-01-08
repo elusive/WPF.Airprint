@@ -8,10 +8,8 @@ namespace WPF.Airprint.Docker
 
         Task<string> IsContainerExisting(string containerName);
         Task<string> IsImageExisting(string imageName);
+        Task<bool> IsContainerRunning(string containerUri);
         Task<bool> StartContainer(string containerImageId);
         Task BuildImage(string dockerTarGzPath);
-
-        Task<bool> ExecuteCommand(string containerId, string[] command);
-        Task<string> ExecuteCommandForOutput(string containerId, string[] command);
     }
 }

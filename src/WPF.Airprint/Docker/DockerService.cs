@@ -8,7 +8,6 @@
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
-    using System.Threading;
     using System.Threading.Tasks;
 
     public class DockerService : IDockerService
@@ -23,67 +22,15 @@
 
         public string PrintServerContainerUri { get; private set; }
 
-        //public async Task<bool> IsContainerRunning(string containerId)
-        //{
-        //    var filterEntry = new KeyValuePair<string, IDictionary<string, bool>>(
-        //        "id", 
-        //        new Dictionary<string, bool>(
-        //            new[]
-        //            {
-        //                new KeyValuePair<string, bool>(containerId, true)
-        //            }));
-        //    var filters = new Dictionary<string, IDictionary<string, bool>>(new [] { filterEntry });
-        //    var parameters = new ContainersListParameters() {Filters = filters};
-        //    var containers = await _dockerClient.Containers.ListContainersAsync(parameters);
-        //    return containers.Any();
-        //}
-
-        public async Task<bool> ExecuteCommand(string containerId, string[] command)
+        public async Task<bool> IsContainerRunning(string containerId)
         {
-            var p = new ContainerExecCreateParameters
-            {
-                Detach = false,
-                Tty = true,
-                Cmd = command,
-            };
-            var create = await _dockerClient.Exec.ExecCreateContainerAsync(containerId, p);
+            var filter = new KeyValuePair<string, IDictionary<string, bool>>("id", new Dictionary<string, bool>(new[] { new KeyValuePair<string, bool>(containerId, true) }));
 
-            if ( !string.IsNullOrEmpty(create?.ID))
-            {
-                var cancel = new CancellationTokenSource();
-                cancel.CancelAfter(TimeSpan.FromSeconds(4));
-                await _dockerClient.Exec.StartContainerExecAsync(create.ID, cancel.Token);
-                return true;
-            }
-
-            return false;
+            var containers = await _dockerClient?.Containers.ListContainersAsync(new ContainersListParameters() { Filters = new Dictionary<string, IDictionary<string, bool>>(new[] { filter }) });
+            return containers.Any();
         }
 
-        public async Task<string> ExecuteCommandForOutput(string containerId, string[] command)
-        {
-            var p = new ContainerExecCreateParameters
-            {
-                Detach = false,
-                AttachStderr = true,
-                AttachStdout = true,
-                Tty = true,
-                Cmd = command,
-            };
-            var create = await _dockerClient.Exec.ExecCreateContainerAsync(containerId, p);
-
-            if (!string.IsNullOrEmpty(create?.ID))
-            {
-                var cancel = new CancellationTokenSource();
-                cancel.CancelAfter(TimeSpan.FromSeconds(8));
-                var start = await _dockerClient.Exec.StartAndAttachContainerExecAsync(create.ID, true, cancel.Token);
-                var output = await start?.ReadOutputToEndAsync(cancel.Token);
-                return output.stdout;
-            }
-
-            return null;
-        }
-
-        private string DockerUri()  
+        private string DockerUri()
         {
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             var isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -116,7 +63,7 @@
             {
                 Image = Constants.DockerPrintServerImageName,
                 ExposedPorts = new Dictionary<string, EmptyStruct>(),
-                Volumes = new Dictionary<string, EmptyStruct>()
+                HostConfig = new HostConfig()
             });
 
             _containerId = response.ID;
@@ -140,7 +87,7 @@
             };
 
             var response = await _dockerClient.Images.ListImagesAsync(p);
-            var firstResponse = response.FirstOrDefault();
+            var firstResponse = response.First();
 
             return firstResponse.ID;
         }

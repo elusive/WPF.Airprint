@@ -47,7 +47,7 @@ The included demo application offers an implementation and use of the core WPF.A
 can be used to discover network printers on the local domain where executed. Once discovered you can select one of the network 
 printers and add a queue for it and print a PDF file from your local drive as a test.
 
-
+> NOTE:  The issue of creating the files volume using the docker remote api prevents the actual print call from functioning in the demo.
 
 
 ### Futures

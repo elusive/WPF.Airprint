@@ -13,50 +13,72 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
     using System.Threading.Tasks;
     using System.Windows.Input;
     using System;
+    using System.Diagnostics;
     using System.Linq;
+    using System.Windows.Threading;
+    using PrintQueue;
     using WPF.Airprint.Events;
+    using WPF.Airprint.DeviceEnumeration;
 
     public class AddPrinterViewModel : RegionViewModelBase
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IDockerService _dockerService;
         private readonly ITerminalService _terminal;
+        private readonly IPrintQueueService _queueService;
         private string _printerHostName;
         private string _printerUri;
         private string _printServerImageId;
         private bool _printServerContainerStarted;
         private bool _showPrinterUri;
         private bool _showPrinterInfo;
+        private string _printerQueueName;
+        private bool _showPrinterQueue;
+        private double _addProgress;
+        private bool _isBusy;
+        private string _printerQueueStatus;
+        private string _printServerContainerId;
+        private bool _showPrintFile;
+        private string _fileToPrint;
+        private DeviceFound _printerInfo;
 
-        public DelegateCommand AddPrinterCommand { get; set; }
+        public DelegateCommand AddPrinterCommand { get; private set; }
+        public DelegateCommand PrintCommand { get; private set; }
 
-        public bool IsPrinterFormValid { get; set; }
-
-        public AddPrinterViewModel(IRegionManager regionManager, IEventAggregator eventAggregator, IDockerService dockerService, ITerminalService terminal) : base(regionManager)
+        public AddPrinterViewModel(IRegionManager regionManager, 
+            IEventAggregator eventAggregator, 
+            IDockerService dockerService, 
+            ITerminalService terminal,
+            IPrintQueueService queueService) : base(regionManager)
         {
             _eventAggregator = eventAggregator;
             _dockerService = dockerService;
             _terminal = terminal;
-            
+            _queueService = queueService;
+
             AddPrinterCommand = new DelegateCommand(ExecuteAddPrinter, CanExecuteAddPrinter);
+            PrintCommand = new DelegateCommand(ExecutePrintCommand, () => true);//!string.IsNullOrEmpty(FileToPrint));
         }
 
         public override void OnNavigatedTo(NavigationContext context)
         {
             base.OnNavigatedTo(context);
 
-            var printerDetail = context.Parameters[Constants.PrinterKey] as PrinterFoundDetails;
-            if (printerDetail == null)
+            _printerInfo = context.Parameters[Constants.PrinterKey] as DeviceFound;
+            if (_printerInfo == null)
             {
                 _eventAggregator.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.NoPrinterDetailToAdd);
                 return;
             }
 
-            PrinterHostName = printerDetail.HostName;
+            PrinterHostName = _printerInfo.HostName;
             ShowPrinterUri = false;
             ShowPrintServerInfo = false;
+            ShowPrinterQueue = false;
 
             AddPrinterCommand.RaiseCanExecuteChanged();
+
+            _eventAggregator.GetEvent<StatusMessageEvent>().Publish($"Click Add Printer to create driverless queue for: {PrinterHostName}");
         }
 
         public string PrinterHostName
@@ -83,6 +105,12 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
             set => SetProperty(ref _printServerImageId, value);
         }
 
+        public string PrintServerContainerId
+        {
+            get => _printServerContainerId;
+            set => SetProperty(ref _printServerContainerId, value);
+        }
+
         public bool PrintServerContainerStarted
         {
             get => _printServerContainerStarted;
@@ -95,18 +123,96 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
             set => SetProperty(ref _showPrinterInfo, value);
         }
 
+        public string PrinterQueueName
+        {
+            get => _printerQueueName;
+            set => SetProperty(ref _printerQueueName, value);
+        }
+
+        public bool ShowPrinterQueue
+        {
+            get => _showPrinterQueue;
+            set => SetProperty(ref _showPrinterQueue, value);
+        }
+
+        public bool ShowPrintFile
+        {
+            get => _showPrintFile;
+            set => SetProperty(ref _showPrintFile, value);
+        }
+
+        public string FileToPrint
+        {
+            get => _fileToPrint;
+            set {
+                SetProperty(ref _fileToPrint, value);
+                PrintCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public double AddProgress
+        {
+            get => _addProgress;
+            set => SetProperty(ref _addProgress, value);
+        }
+
+        public bool IsBusy
+        {
+            get { return _isBusy; }
+            set
+            {
+                SetProperty(ref _isBusy, value);
+                AddPrinterCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public string PrinterQueueStatus
+        {
+            get => _printerQueueStatus;
+            set => SetProperty(ref _printerQueueStatus, value);
+        }
+
         private bool CanExecuteAddPrinter()
         {
-            return !string.IsNullOrEmpty(PrinterHostName);
+            return !string.IsNullOrEmpty(PrinterHostName) && !IsBusy;
+        }
+        private void ShowAddProgress()
+        {
+            IsBusy = true;
+            var started = DateTime.Now;
+            new DispatcherTimer(
+                TimeSpan.FromMilliseconds(50),
+                DispatcherPriority.Normal,
+                new EventHandler((o, e) =>
+                {
+                    var totalDuration = started.AddMilliseconds(8000).Ticks - started.Ticks;
+                    var currentProgress = DateTime.Now.Ticks - started.Ticks;
+                    var currentProgressPercent = 100.0 / totalDuration * currentProgress;
+
+                    AddProgress = currentProgressPercent;
+                    Debug.WriteLine(AddProgress);
+
+                    if (AddProgress >= 100)
+                    {
+                        IsBusy = false;
+                        AddProgress = 0;
+                        if (o is DispatcherTimer timer)
+                        {
+                            timer.Stop();
+                        }
+                    }
+
+                }), Dispatcher.CurrentDispatcher);
         }
 
         private async void ExecuteAddPrinter()
         {
-            var uri = await BuildPrinterUri();
-            _eventAggregator.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.GetBuildUriStatusMessage(uri));
-            PrinterUri = uri;
+            ShowAddProgress();
+
+            PrinterUri = string.Format(CommandStrings.DeviceUriFormat, _printerInfo.IpAddress);
+            _eventAggregator.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.GetBuildUriStatusMessage(PrinterUri));
             ShowPrinterUri = true;
-            
+
 
             var isPrintServerRunning = await CheckPrintServer();
             ShowPrintServerInfo = true;
@@ -114,39 +220,104 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
             {
                 throw new Exception(Constants.Messages.PrintServerContainerMustBeRunning);
             }
+            _eventAggregator.GetEvent<StatusMessageEvent>().Publish($"Driverless print queue running: {isPrintServerRunning}");
+
+
+            ShowPrinterQueue = await CreatePrintQueue(PrinterUri);
+
+            ShowPrintFile = await CheckPrintQueueStatus();
+
+            RaisePropertyChanged(nameof(ShowPrinterQueue));
+            RaisePropertyChanged(nameof(ShowPrintFile));
         }
 
-        private async Task<string> BuildPrinterUri()
-        {
-            //_terminal.CancelAfter(_terminal.CommandTimeoutMilliseconds);
-            var result = await _terminal.ExecuteAsync(CommandType.GetIpAddress, _printerHostName);
-            if (result != null)
-            {
-                var ip = Regex.Split(result.StandardOutput.Skip(1).First(), @"\s+")[5];
-                return string.Format(CommandStrings.DeviceUriFormat, ip);
-            }
+        // BONJOUR
+        //private async Task<string> BuildPrinterUri()
+        //{
+        //    var result = await _terminal.ExecuteAsync(CommandType.GetIpAddress, _printerHostName);
+        //    if (result != null)
+        //    {
+        //        var ip = Regex.Split(result.StandardOutput.Skip(1).First(), @"\s+")[5];
+        //        return string.Format(CommandStrings.DeviceUriFormat, ip);
+        //    }
 
-            return string.Empty;
-        }
+        //    return string.Empty;
+        //}
 
         private async Task<bool> CheckPrintServer()
         {
             // is the docker image there?
             var printServerSha256 = await _dockerService.IsImageExisting(Constants.PrintServerExistingImageName);
-            var printServerImageId = printServerSha256.Replace("sha256:", "");
+            var printServerImageId = printServerSha256.Replace(Constants.DockerImageIdPrefix, "");
             _eventAggregator.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.GetPrintServerIdStatusMessage(printServerImageId));
+            if (printServerImageId == null)
+            {
+                // TODO: Handle image missing error.
+            }
+
             PrintServerImageId = printServerImageId;
 
 
             // is container already existing
             var containerId = await _dockerService.IsContainerExisting(PrintServerImageId);
+            if (containerId == null)
+            {
+                // TODO: Handle container needs to be created.
+            }
+            
+            PrintServerContainerId = containerId;
 
 
             // can we get the container started?
-            var started = (containerId != null) || await _dockerService.StartContainer(printServerImageId);
+            var started = await _dockerService.StartContainer(printServerImageId);
             PrintServerContainerStarted = started;
+            if (!PrintServerContainerStarted)
+            {
+                throw new System.ApplicationException(Constants.Messages.PrintServerContainerMustBeRunning);
+            }
+            _eventAggregator.GetEvent<StatusMessageEvent>().Publish($"Print Server container is running.");
 
             return started;
+        }
+
+        private async Task<bool> CreatePrintQueue(string printerUri)
+        {
+            PrinterQueueName = await _queueService.CreatePrintQueue(PrintServerContainerId, PrinterUri);
+            _eventAggregator.GetEvent<StatusMessageEvent>().Publish($"Driverless print queue created with name: {PrinterQueueName}");
+            return !string.IsNullOrEmpty(PrinterQueueName);
+        }
+
+        private async Task<bool> CheckPrintQueueStatus()
+        {
+            var status = await _queueService.CheckPrintQueueStatus(PrintServerContainerId, PrinterQueueName);
+
+            PrinterQueueStatus = status;
+            PrintCommand.RaiseCanExecuteChanged();
+
+            _eventAggregator.GetEvent<StatusMessageEvent>().Publish($"Driverless print queue created with name: {PrinterQueueName}");
+
+            return !string.IsNullOrEmpty(status);
+        }
+
+        private void ExecutePrintCommand()
+        {
+            Task.Run(async() =>
+            {
+                //var result = await _queueService.PrintPdfFile(FileToPrint, PrinterQueueName);
+                var result = await _terminal.ExecuteAsync(CommandType.PrintServerPrintFile, PrinterQueueName, FileToPrint);
+            });
+        }
+
+        private void ResetView()
+        {
+            ShowPrinterQueue = false;
+            ShowPrinterUri = false;
+            ShowPrintServerInfo = false;
+            ShowPrintFile = false;
+            PrintServerContainerStarted = false;
+            PrinterQueueName = string.Empty;
+            PrinterQueueStatus = string.Empty;
+            PrintServerImageId = string.Empty;
         }
     }
 }

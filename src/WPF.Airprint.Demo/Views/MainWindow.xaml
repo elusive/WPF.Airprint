@@ -8,8 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
     Title="RND Network Printing Harness"
-    Width="840"
-    Height="500"
+    Width="920"
+    Height="530"
     prism:ViewModelLocator.AutoWireViewModel="True"
     Background="{DynamicResource MaterialDesignPaper}"
     FontFamily="{DynamicResource MaterialDesignFont}"
@@ -21,7 +21,7 @@
     mc:Ignorable="d">
 
 
-    <Grid x:Name="MainGrid" Margin="0">
+    <Grid x:Name="MainGrid" Margin="4">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
@@ -57,14 +57,14 @@
                 Command="{Binding NavigateCommand}"
                 CommandParameter="FindPrinter"
                 ToolTip="Find Network Printers">
-                <TextBlock Text="Find Printer" />
+                <TextBlock Text="Discover" />
             </Button>     
             <Button
                 materialDesign:ButtonAssist.CornerRadius="5"
                 Command="{Binding NavigateCommand}"
                 CommandParameter="AddPrinter"
-                ToolTip="Configure a new Network Printer">
-                <TextBlock Text="Add Printer" />
+                ToolTip="Add and use a new Network Printer">
+                <TextBlock Text="Print" />
             </Button>
         </StackPanel>
 

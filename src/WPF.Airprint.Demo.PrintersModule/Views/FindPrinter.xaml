@@ -13,7 +13,7 @@
         <Grid x:Name="MainGrid"
               Margin="8">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="4*" />
                 <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -42,8 +42,8 @@
                 Grid.Row="1"
                 Grid.Column="0"
                 Margin="8"
-                ItemsSource="{Binding AvailablePrinters}"
-                SelectedItem="{Binding SelectedPrinter}"
+                ItemsSource="{Binding DevicesFound}"
+                SelectedItem="{Binding SelectedPrinter, Mode=TwoWay}"
                 CanUserAddRows="False"
                 AutoGenerateColumns="False">
                 <DataGrid.Columns>
@@ -54,19 +54,19 @@
                       ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
                       EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}" />
                     <DataGridTextColumn
-                      Binding="{Binding Type}"
+                      Binding="{Binding IpAddress}"
                       Header="Type"
                       IsReadOnly="True"
                       ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
                       EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}" />
                     <DataGridTextColumn
-                      Binding="{Binding Domain}"
+                      Binding="{Binding HostName}"
                       Header="Domain"
                       IsReadOnly="True"
                       ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
                       EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}" />
                     <DataGridTextColumn
-                      Binding="{Binding Refs}"
+                      Binding="{Binding ServiceName}"
                       Header="Refs"
                       IsReadOnly="True"
                       ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"

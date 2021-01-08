@@ -2,12 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using global::Bonjour;
     using WPF.Airprint.Extensions;
 
+
+    [Obsolete("Use the windows device service instead.")]
     public class BonjourService : IBonjourService
     {
         public const int SearchTimeMilliseconds = 6000;

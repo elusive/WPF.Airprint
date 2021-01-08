@@ -25,6 +25,7 @@
         private DeviceFoundViewModel _selectedPrinter;
         private ObservableCollection<string> _printerDetails;
         private List<DeviceFoundViewModel> _devicesFound;
+        private bool _showInstructions;
 
         public FindPrinterViewModel(IRegionManager regionManager, IEventAggregator events, IBonjourService bonjourService, IWindowsDeviceService devices) : base(regionManager)
         {
@@ -106,6 +107,12 @@
             get => SelectedPrinter != null;
         }
 
+        public bool ShowInstructions
+        {
+            get => _showInstructions;
+            set => SetProperty(ref _showInstructions, value);
+        }
+
         private async void ExecuteFindPrinterCommand()
         {        
 
@@ -118,6 +125,7 @@
             ShowFindProgress();
 
             _events.GetEvent<StatusMessageEvent>().Publish(Constants.Messages.GetNetworkSearchStatusMessage(DevicesFound.Count()));
+            ShowInstructions = true;
         }
 
         private void _devices_DeviceFound(object sender, DeviceFound e)

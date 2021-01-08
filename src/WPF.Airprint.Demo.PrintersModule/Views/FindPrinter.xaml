@@ -19,6 +19,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Button
@@ -31,11 +32,6 @@
                 materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsBusy}"
                 Command="{Binding FindPrinterCommand}"
                 Content="Find Printers" />
-
-            <TextBlock
-                Grid.Column="1" Visibility="{Binding ShowPrinterDetails, Converter={StaticResource BooleanToVisibilityConverter}}">
-                Select printer from grid to load details...
-            </TextBlock>
 
             <DataGrid
                 x:Name="FindPrinter_ResultsDataGrid"
@@ -55,27 +51,36 @@
                       EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}" />
                     <DataGridTextColumn
                       Binding="{Binding IpAddress}"
-                      Header="Type"
+                      Header="IP Address"
                       IsReadOnly="True"
                       ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
                       EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}" />
                     <DataGridTextColumn
                       Binding="{Binding HostName}"
-                      Header="Domain"
+                      Header="Host Name"
                       IsReadOnly="True"
                       ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
                       EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}" />
                     <DataGridTextColumn
                       Binding="{Binding ServiceName}"
-                      Header="Refs"
+                      Header="Service "
                       IsReadOnly="True"
                       ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
                       EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}" />
                 </DataGrid.Columns>
             </DataGrid>
 
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="0" 
+                Margin="8"
+                Visibility="{Binding ShowInstructions, Converter={StaticResource BooleanToVisibilityConverter}}">
+                Select printer from grid to load details...
+            </TextBlock>
+
             <GroupBox Header="Printer Details"
                      Grid.Row="1"
+                      Grid.RowSpan="2"
                      Grid.Column="2"
                       Visibility="{Binding ShowPrinterDetails, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <ListBox x:Name="FindPrinter_PrinterDetailsListBox"
@@ -86,5 +91,6 @@
                      ItemsSource="{Binding PrinterDetails}" />
             </GroupBox>
         </Grid>
+        
     </Grid>
 </UserControl>

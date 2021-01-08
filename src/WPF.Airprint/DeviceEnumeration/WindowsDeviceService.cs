@@ -35,6 +35,13 @@
             _watcher.Start();
         }
 
+        public void CancelDiscoverDevices()
+        {
+            _watcher?.Stop();
+            _watcher = null;
+        }
+
+
         private void _watcher_Added(DeviceWatcher sender, DeviceInformation args)
         {
             var ipAddresses = args.Properties[DeviceProperty.IpAddress] as string[];
@@ -50,10 +57,5 @@
             DeviceFound?.Invoke(this, d);
         }
 
-        public void CancelDiscoverDevices()
-        {
-            _watcher?.Stop();
-            _watcher = null;
-        }
     }
 }

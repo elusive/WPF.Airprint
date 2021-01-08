@@ -1,4 +1,12 @@
+## 0.0.3 (2020-01-07)
+
+- 
+- Switched discovery to use Windows.Devices.Enumeration from WinRT instead of the Bonjour SDK library. [`ca18c25`]
+
+[`ca18c25`]: https://github.com/elusive/WPF.Airprint/commit/20e3aaa8d6df2f1f6e92a67e45e93418b63be681
+
 ## 0.0.2 (2020-01-01)
+
 -   Implemented services for terminal execution and docker api. Added view for configure printer.   [`9097de4`]
 
 [`9097de4`]: <https://github.com/elusive/WPF.Airprint/commit/9097de4e63b1839a9224e1372097e9338f7f55cb>

@@ -6,8 +6,7 @@
         internal const string DockerEngineWindowsUri = "npipe://./pipe/docker_engine";
         internal const string DockerEngineLinuxUri = "unix:/var/run/docker.sock";
 
-        internal const string DockerPrintServerImageName = "cups-print-server"; // ;"cups-docker_cups"
-        internal const string DockerPrintServerContainerName = "cups-print-server_cups1";
+        internal const string DockerPrintServerImageName = "cups-print-server";
         internal const string DockerfileTarGzPath = @"Docker/CupsPrintServer/cups-docker.tar.gz";
 
         internal const string PrintQueueNameFormat = "ipp_printer_queue{0}";

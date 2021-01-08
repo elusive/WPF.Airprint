@@ -4,6 +4,7 @@
     using global::Docker.DotNet.Models;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -53,6 +54,9 @@
                 var cancel = new CancellationTokenSource();
                 cancel.CancelAfter(TimeSpan.FromSeconds(4));
                 await _dockerClient.Exec.StartContainerExecAsync(create.ID, cancel.Token);
+
+                Debug.WriteLine($"Execute command in docker container: {containerId}");
+
                 return true;
             }
 
@@ -77,6 +81,9 @@
                 cancel.CancelAfter(TimeSpan.FromSeconds(8));
                 var start = await _dockerClient.Exec.StartAndAttachContainerExecAsync(create.ID, true, cancel.Token);
                 var output = await start?.ReadOutputToEndAsync(cancel.Token);
+                
+                Debug.WriteLine($"Execute command in docker container: {containerId}");
+
                 return output.stdout;
             }
 
@@ -121,6 +128,8 @@
 
             _containerId = response.ID;
 
+            Debug.WriteLine($"Container started with id: {_containerId}");
+
             return await _dockerClient.Containers.StartContainerAsync(_containerId, null);
         }
 
@@ -151,8 +160,11 @@
 
             var response = await _dockerClient.Containers.ListContainersAsync(p);
             var firstResponse = response.FirstOrDefault(c => c.ImageID.Contains(containerImageID));
+            _containerId = firstResponse?.ID;
 
-            return firstResponse?.ID;
+            Debug.WriteLine($"Checked existence of docker container: {_containerId}");
+
+            return _containerId;
         }
     }
 }

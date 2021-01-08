@@ -253,6 +253,7 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
             if (printServerImageId == null)
             {
                 // TODO: Handle image missing error.
+                return false;
             }
 
             PrintServerImageId = printServerImageId;
@@ -262,22 +263,18 @@ namespace WPF.Airprint.Demo.PrintersModule.ViewModels
             var containerId = await _dockerService.IsContainerExisting(PrintServerImageId);
             if (containerId == null)
             {
-                // TODO: Handle container needs to be created.
+                var started = await _dockerService.StartContainer(printServerImageId);
+                PrintServerContainerStarted = started;
+                if (!PrintServerContainerStarted)
+                {
+                    throw new System.ApplicationException(Constants.Messages.PrintServerContainerMustBeRunning);
+                }
+
+                return started;
             }
             
             PrintServerContainerId = containerId;
-
-
-            // can we get the container started?
-            var started = await _dockerService.StartContainer(printServerImageId);
-            PrintServerContainerStarted = started;
-            if (!PrintServerContainerStarted)
-            {
-                throw new System.ApplicationException(Constants.Messages.PrintServerContainerMustBeRunning);
-            }
-            _eventAggregator.GetEvent<StatusMessageEvent>().Publish($"Print Server container is running.");
-
-            return started;
+            return true;
         }
 
         private async Task<bool> CreatePrintQueue(string printerUri)

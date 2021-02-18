@@ -12,7 +12,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class DockerService : IDockerService
+    public class DockerService : IDockerService, IStartupAction
     {
         private readonly DockerClient _dockerClient;
         private string _containerId;
@@ -165,6 +165,26 @@
             Debug.WriteLine($"Checked existence of docker container: {_containerId}");
 
             return _containerId;
+        }
+
+        public void ProcessStartupAction()
+        {
+            const string DockerDesktopUri = @"C:\Program Files\Docker\Docker\Docker Desktop.exe";
+
+            var psi = new ProcessStartInfo
+            {
+                CreateNoWindow = true,
+                FileName = DockerDesktopUri,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+            var p = Process.Start(psi);
+            p.Exited += P_Exited;
+        }
+
+        private void P_Exited(object sender, EventArgs e)
+        {
+            // restart?? log?
         }
     }
 }

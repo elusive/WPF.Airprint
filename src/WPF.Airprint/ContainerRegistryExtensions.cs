@@ -18,6 +18,8 @@
             registry.Register<ITerminalService, TerminalService>();
             registry.RegisterSingleton<IPrintQueueService, PrintQueueService>();
 
+            registry.Register<IStartupAction, DockerService>();
+
             return registry;
         }
     }

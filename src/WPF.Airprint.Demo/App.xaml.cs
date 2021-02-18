@@ -7,7 +7,9 @@ namespace WPF.Airprint.Demo
     using Prism.Modularity;
     using WPF.Airprint;
     using WPF.Airprint.Demo.Views;
+    using System;
     using System.Windows;
+    using WPF.Airprint.Docker;
 
     /// <summary>
     /// Interaction logic for App.xaml
@@ -39,6 +41,22 @@ namespace WPF.Airprint.Demo
         {
             moduleCatalog.AddModule<MainModule>();
             moduleCatalog.AddModule<PrintersModule.PrintersModule>();
+        }
+
+        private void ProcessStartupActions()
+        {
+            var actions = AppContainer.ResolveMany<IStartupAction>();
+            foreach (var action in actions)
+            {
+                try
+                {
+                    action.ProcessStartupAction();
+                }
+                catch (Exception ex)
+                {
+                    // log and throw?
+                }
+            }
         }
     }
 }

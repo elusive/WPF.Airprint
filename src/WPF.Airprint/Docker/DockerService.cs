@@ -173,13 +173,14 @@
 
             var psi = new ProcessStartInfo
             {
-                CreateNoWindow = true,
-                FileName = DockerDesktopUri,
-                WindowStyle = ProcessWindowStyle.Hidden
+                FileName = DockerDesktopUri
             };
 
-            var p = Process.Start(psi);
-            p.Exited += P_Exited;
+            Task.Delay(30000).ContinueWith(t =>
+            {
+                var p = Process.Start(psi);
+                p.Exited += P_Exited;
+            });            
         }
 
         private void P_Exited(object sender, EventArgs e)

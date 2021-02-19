@@ -19,6 +19,9 @@ namespace WPF.Airprint.Demo
         protected override void OnStartup(StartupEventArgs args)
         {
             base.OnStartup(args);
+
+            // application startup actions
+            ProcessStartupActions();
         }
 
 

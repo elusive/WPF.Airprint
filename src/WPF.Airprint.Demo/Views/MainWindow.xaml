@@ -8,8 +8,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
     Title="RND Network Printing Harness"
-    Width="920"
-    Height="530"
+    WindowStartupLocation="CenterOwner"
+    WindowState="Maximized"
+    WindowStyle="None"
     prism:ViewModelLocator.AutoWireViewModel="True"
     Background="{DynamicResource MaterialDesignPaper}"
     FontFamily="{DynamicResource MaterialDesignFont}"
@@ -65,6 +66,18 @@
                 CommandParameter="AddPrinter"
                 ToolTip="Add and use a new Network Printer">
                 <TextBlock Text="Print" />
+            </Button>
+            <Button
+                materialDesign:ButtonAssist.CornerRadius="5"
+                Command="{Binding StartDockerCommand}"
+                ToolTip="Start the docker desktop process">
+                <TextBlock Text="Start Docker" />
+            </Button>
+            <Button
+                materialDesign:ButtonAssist.CornerRadius="5"
+                Command="{Binding ExitCommand}"
+                ToolTip="Exit Application and boot to OS">
+                <TextBlock Text="Exit" />
             </Button>
         </StackPanel>
 

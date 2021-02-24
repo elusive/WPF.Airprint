@@ -25,9 +25,10 @@ driver files installed onto the OS are not required in order to perform printing
 
 
 ### Getting Started
+Late in the writing of this, a couple days before I did the presentation, I found that I could discover the IPP enabled printers using the WinRT api Windows.Devices.Enumeration. This eliminated the need to use and have installed the Bonjour SDK for Windows. The application code still contains the service class and calls needed to use the Bonjour SDK instead if you wish.
 
 ##### Required:
-1. You must have the [Bonjour SDK for Windows]() installed. 
+1. You must have the [Bonjour SDK for Windows]() installed if you do not have Windows 10 and WinRT. 
 2. You must also have rebooted or manually started the Bonjour Windows Service.
 3. You must have Docker for Windows installed and running. You can use either WSL2 or Hyper-V hosting.
 4. Current version requires you to have the cups printer server image built locally.
